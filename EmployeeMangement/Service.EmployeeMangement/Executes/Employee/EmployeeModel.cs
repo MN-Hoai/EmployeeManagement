@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Service.EmployeeMangement.Executes
 {
-    public class EmployeeManyModel
+    public class EmployeeModel
     {
 
         public class EmployeeResponse 
@@ -20,6 +20,7 @@ namespace Service.EmployeeMangement.Executes
             public int? Status { get; set; }
 
             public int? CreateBy { get; set; }
+            public string? CreateByName { get; set; }
 
             public DateTime? CreateDate { get; set; }
 
@@ -53,9 +54,10 @@ namespace Service.EmployeeMangement.Executes
         public class FilterListRequest
         {
             public int Page { get; set; } = 1;
+            public int PageSize { get; set; } = 5;
             public int? DepartmentId { get; set; }
             public int? JobpositionId { get; set; }
-
+            public int Status { get; set; } = 1;
             public string? Position { get; set; }
             public string? KeySearch { get; set; }
             public DateTime? CreateDateFrom { get; set; }

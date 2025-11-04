@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Service.EmployeeMangement.Executes;
 using System.Security.Claims;
-using static Service.EmployeeMangement.Executes.EmployeeManyModel;
+using static Service.EmployeeMangement.Executes.EmployeeModel;
 
 namespace EmployeeMangement.Controllers
 {
@@ -13,10 +13,12 @@ namespace EmployeeMangement.Controllers
     {
         private readonly EmployeeOne _employeeOne;
         private readonly EmployeeMany _employeeMany;
-        public EmployeeController(EmployeeOne employeeOne, EmployeeMany employeeMany)
+        private readonly EmployeeCommand _employeeCommand;
+        public EmployeeController(EmployeeOne employeeOne, EmployeeMany employeeMany, EmployeeCommand employeeCommand)
         {
             _employeeOne = employeeOne;
             _employeeMany = employeeMany;
+            _employeeCommand = employeeCommand;
         }
 
         public IActionResult List()
@@ -49,6 +51,10 @@ namespace EmployeeMangement.Controllers
         {
             return PartialView("~/Views/Shared/Page/_EmployeeList.cshtml");
         }
+        public async Task<IActionResult> AddEmployee()
+        {
+            return PartialView("~/Views/Shared/Page/_EditAddEmployee.cshtml");
+        }
         // GET: api/employees
         [HttpGet("api/employees")]
         public async Task<IActionResult> GetAll(FilterListRequest filter)
@@ -60,7 +66,7 @@ namespace EmployeeMangement.Controllers
             if (isValid) { return BadRequest(new { succsess = false, message = "Dữ liệu không hợp lệ - model không hợp lệ" }); }
             try
             {
-                var result = _employeeMany.GetEmployees(filter);
+                var result = await _employeeMany.Gets(filter);
                 if (result == null) { return NotFound(new { succsess = false, message = "Không có dữ liệu" }); }
                 return Ok(new
                 {
@@ -85,18 +91,37 @@ namespace EmployeeMangement.Controllers
             if (isValid) { return BadRequest(new { succsess = false, message = "Dữ liệu không hợp lệ - id không hợp lệ" }); }
             try
             {
-                var result = _employeeOne.GetEmployee(id, null);
-                if (result == null) { return NotFound(new { succsess = false, message = "Không có dữ liệu" }); }
-                return Ok(new
+                var result = await _employeeOne.Get(id, null);
+                if (result == null || !result.Any()) { return NotFound(new { succsess = false, message = "Không có dữ liệu" }); }
+
+              
+                var employee = result.FirstOrDefault();
+                if (employee == null) { return NotFound(new { succsess = false, message = "Không có dữ liệu" }); }
+
+                var model = new EmployeeResponse()
                 {
-                    succsess = result,
-                    message = "Lấy dữ liệu thành công"
-                });
+                    Id = employee.Id,
+                    Fullname = employee.Fullname,
+                    Email = employee.Email,
+                    Phone = employee.Phone,
+                    Position = employee.Position,
+                    Status = employee.Status,
+                    CreateBy = employee.CreateBy,
+                    CreateByName = employee.CreateByName,
+                    CreateDate = employee.CreateDate,
+                    UpdatedBy = employee.UpdatedBy,
+                    UpdatedDate = employee.UpdatedDate,
+                    JobPositionName = employee.JobPositionName,
+                    DepartmentName = employee.DepartmentName,
+                    Address = employee.Address,
+                    Keyword = employee.Keyword
+                };
+
+                return PartialView("~/Views/Shared/Page/_ViewDetailEmployee.cshtml", model);
             }
             catch (Exception)
             {
                 return StatusCode(500, new { succsess = false, message = "Không thể kết nối server" });
-
             }
         }
 
@@ -110,7 +135,7 @@ namespace EmployeeMangement.Controllers
             if (isValid) { return BadRequest(new { succsess = false, message = "Dữ liệu không hợp lệ - email không hợp lệ" }); }
             try
             {
-                var result = _employeeOne.GetEmployee(0, email);
+                var result = await _employeeOne.Get(0, email);
                 if (result == null) { return NotFound(new { succsess = false, message = "Không có dữ liệu" }); }
                 return Ok(new
                 {
@@ -132,17 +157,35 @@ namespace EmployeeMangement.Controllers
         }
 
         // PUT: api/employees/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] object employee)
-        {
-            return Ok(new { message = $"Employee {id} updated" });
-        }
+        //[HttpPut("api/employee/update/{id:int}")]
+        //public async Task<IActionResult> Update(int id, [FromBody] object employee)
+        //{
+           
+        //}
 
-        // DELETE: api/employees/5
-        [HttpDelete("{id}")]
+        // DELETE: api/employee/delete/5
+        [HttpPost("api/employee/delete/{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
-            return NoContent();
+            if (id == 0) { return BadRequest(new { succsess = false, message = "Dữ liệu không hợp lệ - dữ liệu rỗng" }); }
+
+            var isValid = SqlGuard.IsSuspicious(id);
+            if (isValid) { return BadRequest(new { succsess = false, message = "Dữ liệu không hợp lệ - id không hợp lệ" }); }
+            try
+            {
+                var result = await _employeeCommand.Delete(id);
+                if (result == 0) { return NotFound(new { succsess = false, message = "Không có dữ liệu" }); }
+                return Ok(new
+                {
+                    success = true,
+                    message = "Xóa dữ liệu thành công"
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { succsess = false, message = "Không thể kết nối server" });
+
+            }
         }
     }
 }

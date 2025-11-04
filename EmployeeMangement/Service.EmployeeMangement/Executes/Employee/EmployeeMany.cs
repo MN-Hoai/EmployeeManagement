@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static Service.EmployeeMangement.Executes.EmployeeManyModel;
+using static Service.EmployeeMangement.Executes.EmployeeModel;
 namespace Service.EmployeeMangement.Executes
 {
     public class EmployeeMany
@@ -19,29 +19,39 @@ namespace Service.EmployeeMangement.Executes
             _context = context;
         }
 
-        public async Task<EmployeeListResponse> GetEmployees(FilterListRequest filter)
+        public async Task<EmployeeListResponse> Gets(FilterListRequest filter)
         {
             IQueryable<Employee> query = _context.Employees
                 .Include(e => e.JobPosition)
                 .Include(e => e.Department)
-                .Where(p => p.Status == 1);
+                .Where(p => p.Status >= 0);
 
             // Search keyword
             if (!string.IsNullOrWhiteSpace(filter.KeySearch))
             {
                 string keyword = filter.KeySearch.Trim();
                 string collate = "Vietnamese_CI_AI";
-
-                bool isId = int.TryParse(keyword, out int id);
-
                 query = query.Where(x =>
-                    (isId && x.Id == id) ||
-                    EF.Functions.Collate(x.Keyword, collate).Contains(keyword) ||
-                    EF.Functions.Collate(x.Email, collate).Contains(keyword) ||
-                    EF.Functions.Collate(x.Phone, collate).Contains(keyword) ||
-                    EF.Functions.Collate(x.Fullname, collate).Contains(keyword)
-                );
+                       EF.Functions.Collate(x.Keyword ?? "", collate).Contains(keyword) ||
+                       EF.Functions.Collate(x.Email ?? "", collate).Contains(keyword) ||
+                       EF.Functions.Collate(x.Phone ?? "", collate).Contains(keyword) ||
+                       EF.Functions.Collate(x.Fullname ?? "", collate).Contains(keyword)
+                   );
+                //if (int.TryParse(keyword, out int id))
+                //{
+                //    query = query.Where(x => x.Id == id);
+                //}
+                //else
+                //{
+                //    query = query.Where(x =>
+                //        EF.Functions.Collate(x.Keyword ?? "", collate).Contains(keyword) ||
+                //        EF.Functions.Collate(x.Email ?? "", collate).Contains(keyword) ||
+                //        EF.Functions.Collate(x.Phone ?? "", collate).Contains(keyword) ||
+                //        EF.Functions.Collate(x.Fullname ?? "", collate).Contains(keyword)
+                //    );
+                //}
             }
+
 
             // Filter department
             if (filter.DepartmentId.HasValue)
@@ -76,7 +86,7 @@ namespace Service.EmployeeMangement.Executes
 
             // Paging
             int page = filter.Page <= 0 ? 1 : filter.Page;
-            const int PAGE_SIZE = 2;
+            int PAGE_SIZE = filter.PageSize;
 
             var results = await query
             .OrderByDescending(x => x.CreateDate)
