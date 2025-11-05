@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Service.EmployeeMangement.Executes;
 using System.Security.Claims;
-using static Service.EmployeeMangement.Executes.EmployeeManyModel;
+using static Service.EmployeeMangement.Executes.DepartmentModel;
+using static Service.EmployeeMangement.Executes.EmployeeModel;
+using static Service.EmployeeMangement.Executes.JobPositionModel;
 
 namespace EmployeeMangement.Controllers
 {
@@ -13,10 +15,19 @@ namespace EmployeeMangement.Controllers
     {
         private readonly EmployeeOne _employeeOne;
         private readonly EmployeeMany _employeeMany;
-        public EmployeeController(EmployeeOne employeeOne, EmployeeMany employeeMany)
+        private readonly DepartmentMany _departmentMany;
+        private readonly EmployeeCommand _employeeCommand;
+        private readonly JobPositionMany _jobPositionMany;
+
+
+        public EmployeeController(EmployeeOne employeeOne, EmployeeMany employeeMany,
+            EmployeeCommand employeeCommand, DepartmentMany departmentMany, JobPositionMany jobPositionMany)
         {
             _employeeOne = employeeOne;
             _employeeMany = employeeMany;
+            _employeeCommand = employeeCommand;
+            _departmentMany = departmentMany;
+            _jobPositionMany = jobPositionMany;
         }
 
         public IActionResult List()
@@ -40,7 +51,7 @@ namespace EmployeeMangement.Controllers
             return View();
         }
 
-       
+
         public IActionResult Header()
         {
             return PartialView();
@@ -49,6 +60,27 @@ namespace EmployeeMangement.Controllers
         {
             return PartialView("~/Views/Shared/Page/_EmployeeList.cshtml");
         }
+        public async Task<IActionResult> AddEmployee()
+        {
+            var model = new EmployeeResponse();
+            var departments = await _departmentMany.GetAllDepartmentName();
+
+            model.Departments = departments.Select(x => new DepartmentResponse
+            {
+                Id = x.Id,
+                Name = x.Name
+            }).ToList();
+            var jobpositions = await _jobPositionMany.GetAllJobPositionName();
+            model.JobPositions = jobpositions.Select(y => new JobPositionResponse
+            {
+                Id = y.Id,
+                Name = y.Name,
+                Address = y.Address,
+
+            }).ToList();
+            return PartialView("~/Views/Shared/Page/_EditAddEmployee.cshtml", model);
+        }
+
         // GET: api/employees
         [HttpGet("api/employees")]
         public async Task<IActionResult> GetAll(FilterListRequest filter)
@@ -60,7 +92,7 @@ namespace EmployeeMangement.Controllers
             if (isValid) { return BadRequest(new { succsess = false, message = "Dữ liệu không hợp lệ - model không hợp lệ" }); }
             try
             {
-                var result = _employeeMany.GetEmployees(filter);
+                var result = await _employeeMany.Gets(filter);
                 if (result == null) { return NotFound(new { succsess = false, message = "Không có dữ liệu" }); }
                 return Ok(new
                 {
@@ -76,8 +108,8 @@ namespace EmployeeMangement.Controllers
         }
 
         // GET: api/employees/5
-        [HttpGet("api/employee/{id:int}")]
-        public async Task<IActionResult> GetById(int id = 0)
+        [HttpGet("api/employee/{id:int}/{mode}")]
+        public async Task<IActionResult> GetById(int id = 0, string mode = "view")
         {
             if (id == 0) { return BadRequest(new { succsess = false, message = "Dữ liệu không hợp lệ - dữ liệu rỗng" }); }
 
@@ -85,18 +117,65 @@ namespace EmployeeMangement.Controllers
             if (isValid) { return BadRequest(new { succsess = false, message = "Dữ liệu không hợp lệ - id không hợp lệ" }); }
             try
             {
-                var result = _employeeOne.GetEmployee(id, null);
-                if (result == null) { return NotFound(new { succsess = false, message = "Không có dữ liệu" }); }
-                return Ok(new
+                var result = await _employeeOne.Get(id, null);
+                if (result == null || !result.Any()) { return NotFound(new { succsess = false, message = "Không có dữ liệu" }); }
+
+
+                var employee = result.FirstOrDefault();
+                if (employee == null) { return NotFound(new { succsess = false, message = "Không có dữ liệu" }); }
+
+                var model = new EmployeeResponse()
                 {
-                    succsess = result,
-                    message = "Lấy dữ liệu thành công"
-                });
+                    Id = employee.Id,
+                    Keyword = employee.Keyword,
+                    Fullname = employee.Fullname,
+                    Email = employee.Email,
+                    Phone = employee.Phone,
+                    Position = employee.Position,
+                    Status = employee.Status,
+                    CreateBy = employee.CreateBy,
+                    CreateByName = employee.CreateByName,
+                    UpdatedByName = employee.UpdatedByName,
+                    CreateDate = employee.CreateDate,
+                    UpdatedBy = employee.UpdatedBy,
+                    UpdatedDate = employee.UpdatedDate,
+                    JobPositionName = employee.JobPositionName,
+                    JobPositionId = employee.JobPositionId,
+                    DepartmentName = employee.DepartmentName,
+                    DepartmentId = employee.DepartmentId,
+                    Address = employee.Address,
+                  
+                };
+                if (mode == "view")
+                {
+                    return PartialView("~/Views/Shared/Page/_ViewDetailEmployee.cshtml", model);
+                }
+                var departments = await _departmentMany.GetAllDepartmentName();
+
+                model.Departments = departments.Select(x => new DepartmentResponse
+                {
+                    Id = x.Id,
+                    Name = x.Name
+                }).ToList();
+                var jobpositions = await _jobPositionMany.GetAllJobPositionName();
+                model.JobPositions = jobpositions.Select(y => new JobPositionResponse
+                {
+                    Id = y.Id,
+                    Name = y.Name,
+
+                }).ToList();
+                return PartialView("~/Views/Shared/Page/_EditAddEmployee.cshtml", model);
+
+
+
+
+
+
+
             }
             catch (Exception)
             {
                 return StatusCode(500, new { succsess = false, message = "Không thể kết nối server" });
-
             }
         }
 
@@ -110,7 +189,7 @@ namespace EmployeeMangement.Controllers
             if (isValid) { return BadRequest(new { succsess = false, message = "Dữ liệu không hợp lệ - email không hợp lệ" }); }
             try
             {
-                var result = _employeeOne.GetEmployee(0, email);
+                var result = await _employeeOne.Get(0, email);
                 if (result == null) { return NotFound(new { succsess = false, message = "Không có dữ liệu" }); }
                 return Ok(new
                 {
@@ -125,24 +204,110 @@ namespace EmployeeMangement.Controllers
             }
         }
         // POST: api/employees
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] object employee)
+        [HttpPost("api/employee/create")]
+        public async Task<IActionResult> Create([FromBody] EmployeeResponse request)
         {
-            return Created("", new { message = "Employee created" });
+            if (request == null)
+                return BadRequest(new { success = false, message = "Vui lòng điền đầy đủ thông tin" });
+
+            if (SqlGuard.IsSuspicious(request))
+                return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ" });
+            try
+            {
+                var claims = User.Identity as ClaimsIdentity;
+                var accountIdString = claims?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (!int.TryParse(accountIdString, out int accountId) || accountId <= 0)
+                {
+                    return Unauthorized(new { success = false, message = "Không xác thực được tài khoản" });
+                }
+                var result = await _employeeCommand.Create(request, accountId);
+                if (result == 0)
+                    return NotFound(new { success = false, message = "Không tìm thấy dữ liệu để cập nhật" });
+
+                if (result == -1)
+                    return StatusCode(500, new { success = false, message = "Lỗi khi cập nhật dữ liệu" });
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Lưu dữ liệu thành công"
+                });
+            }
+            catch (Exception)
+            {
+
+                return StatusCode(500, new { success = false, message = "Không thể kết nối server" });
+            }
         }
 
-        // PUT: api/employees/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] object employee)
+
+        [HttpPut("api/employee/update")]
+        public async Task<IActionResult> Update([FromBody] EmployeeResponse request)
         {
-            return Ok(new { message = $"Employee {id} updated" });
+            if (request == null)
+                return BadRequest(new { success = false, message = "Thông tin không có thay đổi" });
+
+            if (request.Id <= 0)
+                return BadRequest(new { success = false, message = "Mã nhân viên không hợp lệ" });
+
+            if (SqlGuard.IsSuspicious(request))
+                return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ" });
+
+            try
+            {
+                var claims = User.Identity as ClaimsIdentity;
+                var accountIdString = claims?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (!int.TryParse(accountIdString, out int accountId) || accountId <= 0)
+                {
+                    return Unauthorized(new { success = false, message = "Không xác thực được tài khoản" });
+                }
+
+                var result = await _employeeCommand.Update(request, accountId);
+
+                if (result == 0)
+                    return NotFound(new { success = false, message = "Không tìm thấy dữ liệu để cập nhật" });
+
+                if (result == -1)
+                    return StatusCode(500, new { success = false, message = "Lỗi khi cập nhật dữ liệu" });
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Lưu dữ liệu thành công"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = $"Không thể kết nối server: {ex.Message}" });
+            }
         }
 
-        // DELETE: api/employees/5
-        [HttpDelete("{id}")]
+
+        //// DELETE: api/employee/delete/5
+        [HttpPost("api/employee/delete/{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
-            return NoContent();
+            if (id == 0) { return BadRequest(new { succsess = false, message = "Dữ liệu không hợp lệ - dữ liệu rỗng" }); }
+
+            var isValid = SqlGuard.IsSuspicious(id);
+            if (isValid) { return BadRequest(new { succsess = false, message = "Dữ liệu không hợp lệ - id không hợp lệ" }); }
+            try
+            {
+                var result = await _employeeCommand.Delete(id);
+                if (result == 0) { return NotFound(new { succsess = false, message = "Không có dữ liệu" }); }
+                return Ok(new
+                {
+                    success = true,
+                    message = "Xóa dữ liệu thành công"
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { succsess = false, message = "Không thể kết nối server" });
+
+            }
         }
     }
 }
