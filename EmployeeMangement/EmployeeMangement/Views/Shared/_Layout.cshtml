@@ -8,7 +8,6 @@
     <!-- Bootstrap & Core CSS -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
 
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 
     <!-- Admin Template Styles -->
 
@@ -19,15 +18,11 @@
     <link href="~/assets/css/custom.min.css" rel="stylesheet" />
     <link href="~/assets/css/dropzone.css" rel="stylesheet" />
     <link href="~/assets/css/glightbox.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
 
     @RenderBody()
-
-
-
-
-
 
 
     <!-- ========== Scripts ========== -->
@@ -46,6 +41,8 @@
     <script src="~/assets/js/particles.js"></script>
     <script src="~/assets/js/particles.app.js"></script>
     <script src="~/assets/js/app.js"></script>
+    <script src="~/js/department.js"></script>
+    <script src="~/js/position.js"></script>
 
 
     @await RenderSectionAsync("Scripts", required: false)

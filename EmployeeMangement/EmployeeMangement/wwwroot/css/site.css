@@ -349,3 +349,32 @@ body {
     background: white;
 
 }
+
+@media (max-width: 768px) {
+    .table thead {
+        display: none; /* Ẩn header bảng trên mobile */
+    }
+
+    .table tbody tr {
+        display: block;
+        margin-bottom: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+    }
+
+    .table tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem 0;
+    }
+
+        .table tbody td::before {
+            content: attr(data-label);
+            font-weight: 600;
+            color: #6c757d;
+            flex: 1;
+            text-align: left;
+        }
+}

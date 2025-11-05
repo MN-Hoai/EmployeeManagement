@@ -13,6 +13,13 @@ namespace Service.EmployeeMangement.Executes
             public int Id { get; set; }
             public string Name { get; set; } = string.Empty;
             public string Address { get; set; } = string.Empty;
+            public int? Status { get; set; }
+
+        }
+
+        public class DeleteJobPositionRequest
+        {
+            public int? Id { get; set; }
         }
     }
 }

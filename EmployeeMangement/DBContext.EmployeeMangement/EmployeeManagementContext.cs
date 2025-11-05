@@ -39,6 +39,16 @@ public partial class EmployeeManagementContext : DbContext
             entity.HasOne(d => d.Manager).WithMany(p => p.Departments)
                 .HasForeignKey(d => d.ManagerId)
                 .HasConstraintName("FK_Departments_Employees");
+
+            entity.HasOne(d => d.CreateByNavigation)
+        .WithMany()  
+        .HasForeignKey(d => d.CreateBy)
+        .HasConstraintName("FK_Department_CreateBy_Employee");
+
+            entity.HasOne(d => d.UpdateByNavigation)
+        .WithMany()
+        .HasForeignKey(d => d.UpdatedBy)
+        .HasConstraintName("FK_Department_UpdateBy_Employee");
         });
 
         modelBuilder.Entity<Employee>(entity =>

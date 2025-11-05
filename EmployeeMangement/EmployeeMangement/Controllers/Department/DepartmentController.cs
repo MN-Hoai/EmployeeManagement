@@ -1,14 +1,21 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Service.EmployeeMangement;
 using Service.EmployeeMangement.Executes;
+using static Service.EmployeeMangement.Executes.DepartmentModel;
 
 namespace EmployeeMangement.Controllers
 {
     public class DepartmentController : Controller
     {
         private readonly DepartmentMany _departmentMany;
-        public DepartmentController(DepartmentMany departmentMany )
+        private readonly DepartmentCommand _departmentCommand;
+        private readonly DepartmentOne _departmentOne;
+
+        public DepartmentController(DepartmentMany departmentMany, DepartmentCommand departmentCommand, DepartmentOne departmentOne)
         {
             _departmentMany = departmentMany;
+            _departmentCommand = departmentCommand;
+            _departmentOne = departmentOne;
         }
         public async Task<IActionResult> DepartmentList()
         {
@@ -40,5 +47,71 @@ namespace EmployeeMangement.Controllers
             }
         }
 
+        [HttpPost("api/department/delete")]
+        public async Task<IActionResult> DeleteDepartment([FromBody] DeleteDepartmentRequest request)
+        {
+            try
+            {
+                var result = await _departmentCommand.DeleteDepartmentById(request.Id);
+                if (result)
+                    return Ok(new { success = true, message = "Xóa bài viết thành công" });
+
+                return BadRequest(new { success = false, message = "Xóa bài viết không thành công" });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { success = false, message = "Lỗi kết nối server" });
+            }
+        }
+
+        // === API: Lấy chi tiết phòng ban ===
+        [HttpGet("api/department/view/{id}")]
+        public async Task<IActionResult> GetDepartment(int id)
+        {
+            var result = await _departmentOne.GetDepartmentById(id);
+
+            if (result == null)
+                return BadRequest(new { success = false, message = "Không tìm thấy phòng ban" });
+
+            return Ok(new
+            {
+                success = true,
+                message = "Lấy chi tiết phòng ban thành công",
+                data = new
+                {
+                    id = result.Id,
+                    code = result.Code,
+                    name = result.Name,
+                    keyword = result.Keyword,
+                    status = result.Status,
+                    createBy = result.CreateByNavigation == null ? null : new
+                    {
+                        id = result.CreateByNavigation.Id,
+                        fullName = result.CreateByNavigation.Fullname
+                    },
+                    createDate = result.CreateDate,
+                    updateBy = result.UpdateByNavigation == null ? null : new {
+                        id = result.UpdateByNavigation.Id,
+                        fullName = result.UpdateByNavigation.Fullname
+                    },
+                    updatedDate = result.UpdatedDate,
+                    manager = result.Manager == null ? null : new
+                    {
+                        id = result.Manager.Id,
+                        fullname = result.Manager.Fullname,
+                        email = result.Manager.Email,
+                        phone = result.Manager.Phone,
+                        avatar = result.Manager.Media?.FilePath
+                    },
+                    jobPosition = result.JobPosition == null ? null : new
+                    {
+                        id = result.JobPosition.Id,
+                        code = result.JobPosition.Code,
+                        name = result.JobPosition.Name
+                    }
+                }
+            });
+
+        }
     }
 }

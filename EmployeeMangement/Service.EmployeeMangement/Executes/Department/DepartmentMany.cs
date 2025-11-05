@@ -20,18 +20,21 @@ namespace Service.EmployeeMangement.Executes
         public async Task<List<Department>> GetDepartments()
         {
             return await _context.Departments
-                                 .Where(d => d.Status == 1)
+                                 .Where(d => d.Status >= 0)
                                  .ToListAsync();
         }
         public async Task<List<DepartmentResponse>> GetAllDepartmentName()
         {
             return await _context.Departments
-                .Where(d => d.Status == 1)
+                .Where(d => d.Status >= 0)
                 .Select(d => new DepartmentResponse
                 {
                     Id = d.Id,
                     Name = d.Name,
-                    
+                    Status = d.Status,
+                    ManagerName = d.Manager != null ? d.Manager.Fullname : "Chưa có",
+                    EmployeeCount = d.Employees.Count()
+
                 })
                 .ToListAsync();
         }

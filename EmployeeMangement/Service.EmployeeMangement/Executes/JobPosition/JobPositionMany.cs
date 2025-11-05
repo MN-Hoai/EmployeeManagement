@@ -17,21 +17,22 @@ namespace Service.EmployeeMangement.Executes
         {
             _context = context;
         }
-        public async Task<List<JobPosition>> GetDepartments()
+        public async Task<List<JobPosition>> JobPositions()
         {
             return await _context.JobPositions
-                                 .Where(d => d.Status == 1)
+                                 .Where(d => d.Status >=0 )
                                  .ToListAsync();
         }
         public async Task<List<JobPositionResponse>> GetAllJobPositionName()
         {
             return await _context.JobPositions
-                .Where(d => d.Status == 1)
+                .Where(d => d.Status >= 0)
                 .Select(d => new JobPositionResponse
                 {
                     Id = d.Id,
                     Name = d.Name,
                     Address = d.Address,
+                    Status = d.Status,
                 })
                 .ToListAsync();
         }

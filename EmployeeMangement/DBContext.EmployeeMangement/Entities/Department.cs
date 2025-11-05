@@ -33,4 +33,7 @@ public partial class Department
     public virtual JobPosition JobPosition { get; set; }
 
     public virtual Employee Manager { get; set; }
+    public virtual Employee CreateByNavigation { get; set; }
+    public virtual Employee UpdateByNavigation { get; set; }
+
 }
