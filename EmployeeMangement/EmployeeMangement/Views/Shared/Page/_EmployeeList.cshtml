@@ -206,3 +206,9 @@
 
 
 </div>
+
+<script>
+    document.dispatchEvent(new CustomEvent("componentLoaded", {
+        detail: { script: "/js/main.js" } // file JS riêng của trang này
+    }));
+</script>

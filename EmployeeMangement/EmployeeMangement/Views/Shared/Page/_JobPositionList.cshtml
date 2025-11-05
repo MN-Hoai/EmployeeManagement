@@ -140,3 +140,8 @@
         <ul class="pagination justify-content-end" id="paginationJ"></ul>
     </nav>
 </div>
+<script>
+    document.dispatchEvent(new CustomEvent("componentLoaded", {
+        detail: { script: "/js/position.js" } // file JS riêng của trang này
+    }));
+</script>

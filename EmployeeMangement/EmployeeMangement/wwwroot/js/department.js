@@ -3,22 +3,9 @@
     let currentDeptId = null;
 
 
-    $("#department-list-link").on("click", function () {
-        $.ajax({
-            url: '/Department/DepartmentList',
-            method: 'GET',
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
-            .done(function (html) {
-                $("#content-main").html(html);
-                loadDepartment();  
-            })
-            .fail(function (xhr) {
-                $("#content-main").html('<div class="alert alert-danger">' + (xhr.responseText || 'Không tải được chi tiết') + '</div>');
-            });
-    });
+   
 
-     $("#department-list-link").trigger("click");
+  
 
     //Lấy tên
     function loadDepartment(filters) {

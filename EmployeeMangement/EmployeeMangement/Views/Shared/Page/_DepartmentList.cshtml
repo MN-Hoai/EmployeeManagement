@@ -13,7 +13,7 @@
         background-color: #ffffff !important;
         color: #000000 !important;
     }
-</style>
+</style> 
 <div class="container-fluid">
 
     <!-- Bộ lọc -->
@@ -166,5 +166,8 @@
     </nav>
 </div>
 
-
-
+<script>
+    document.dispatchEvent(new CustomEvent("componentLoaded", {
+        detail: { script: "/js/department.js" } // file JS riêng của trang này
+    }));
+</script>
