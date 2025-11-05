@@ -46,17 +46,24 @@ namespace Service.EmployeeMangement.Executes
             .Where(u => u.Id == e.CreateBy)
             .Select(u => u.Fullname)
             .FirstOrDefault(),
+                    UpdatedByName = _context.Employees
+            .Where(u => u.Id == e.UpdatedBy)
+            .Select(u => u.Fullname)
+            .FirstOrDefault(),
                     CreateDate = e.CreateDate,
                     UpdatedBy = e.UpdatedBy,
                     UpdatedDate = e.UpdatedDate,
                     Fullname = e.Fullname,
                     Email = e.Email,
                     Phone = e.Phone,
+                  
                     Position = e.Position,
                     Address = e.JobPosition != null ? e.JobPosition.Address : null,
+                    JobPositionId = e.JobPosition != null ? e.JobPosition.Id : null,
                     JobPositionCode = e.JobPosition != null ? e.JobPosition.Code : null,
                     JobPositionName = e.JobPosition != null ? e.JobPosition.Name : null,
                     DepartmentName = e.Department != null ? e.Department.Name : null,
+                    DepartmentId = e.Department != null ? e.Department.Id : null,
                     DepartmentCode = e.Department != null ? e.Department.Code : null
                 })
                 .ToListAsync();

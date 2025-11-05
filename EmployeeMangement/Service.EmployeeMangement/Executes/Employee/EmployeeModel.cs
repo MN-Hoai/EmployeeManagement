@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using static Service.EmployeeMangement.Executes.DepartmentModel;
+using static Service.EmployeeMangement.Executes.JobPositionModel;
 
 namespace Service.EmployeeMangement.Executes
 {
@@ -13,7 +15,7 @@ namespace Service.EmployeeMangement.Executes
 
         public class EmployeeResponse 
         {
-            public int Id { get; set; }
+            public int Id { get; set; } = 0;
 
             public string? Keyword { get; set; }
 
@@ -25,6 +27,7 @@ namespace Service.EmployeeMangement.Executes
             public DateTime? CreateDate { get; set; }
 
             public int? UpdatedBy { get; set; }
+            public string? UpdatedByName { get; set; }
 
             public DateTime? UpdatedDate { get; set; }
 
@@ -37,17 +40,19 @@ namespace Service.EmployeeMangement.Executes
             public string? Position { get; set; }
             public string? Address { get; set; }
 
+            public int? DepartmentId { get; set; }
             public string? DepartmentCode { get; set; }
 
             public string? DepartmentName { get; set; }
+            public int? JobPositionId { get; set; }
 
             public string? JobPositionCode { get; set; }
 
             public string? JobPositionName { get; set; }
 
+            public List<DepartmentResponse> Departments { get; set; }
 
-
-
+            public List<JobPositionResponse> JobPositions { get; set; }
 
         }
 

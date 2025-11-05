@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Service.EmployeeMangement.Executes;
 using System.Security.Claims;
+using static Service.EmployeeMangement.Executes.DepartmentModel;
 using static Service.EmployeeMangement.Executes.EmployeeModel;
+using static Service.EmployeeMangement.Executes.JobPositionModel;
 
 namespace EmployeeMangement.Controllers
 {
@@ -13,12 +15,19 @@ namespace EmployeeMangement.Controllers
     {
         private readonly EmployeeOne _employeeOne;
         private readonly EmployeeMany _employeeMany;
+        private readonly DepartmentMany _departmentMany;
         private readonly EmployeeCommand _employeeCommand;
-        public EmployeeController(EmployeeOne employeeOne, EmployeeMany employeeMany, EmployeeCommand employeeCommand)
+        private readonly JobPositionMany _jobPositionMany;
+
+
+        public EmployeeController(EmployeeOne employeeOne, EmployeeMany employeeMany,
+            EmployeeCommand employeeCommand, DepartmentMany departmentMany, JobPositionMany jobPositionMany)
         {
             _employeeOne = employeeOne;
             _employeeMany = employeeMany;
             _employeeCommand = employeeCommand;
+            _departmentMany = departmentMany;
+            _jobPositionMany = jobPositionMany;
         }
 
         public IActionResult List()
@@ -42,7 +51,7 @@ namespace EmployeeMangement.Controllers
             return View();
         }
 
-       
+
         public IActionResult Header()
         {
             return PartialView();
@@ -53,8 +62,25 @@ namespace EmployeeMangement.Controllers
         }
         public async Task<IActionResult> AddEmployee()
         {
-            return PartialView("~/Views/Shared/Page/_EditAddEmployee.cshtml");
+            var model = new EmployeeResponse();
+            var departments = await _departmentMany.GetAllDepartmentName();
+
+            model.Departments = departments.Select(x => new DepartmentResponse
+            {
+                Id = x.Id,
+                Name = x.Name
+            }).ToList();
+            var jobpositions = await _jobPositionMany.GetAllJobPositionName();
+            model.JobPositions = jobpositions.Select(y => new JobPositionResponse
+            {
+                Id = y.Id,
+                Name = y.Name,
+                Address = y.Address,
+
+            }).ToList();
+            return PartialView("~/Views/Shared/Page/_EditAddEmployee.cshtml", model);
         }
+
         // GET: api/employees
         [HttpGet("api/employees")]
         public async Task<IActionResult> GetAll(FilterListRequest filter)
@@ -82,8 +108,8 @@ namespace EmployeeMangement.Controllers
         }
 
         // GET: api/employees/5
-        [HttpGet("api/employee/{id:int}")]
-        public async Task<IActionResult> GetById(int id = 0)
+        [HttpGet("api/employee/{id:int}/{mode}")]
+        public async Task<IActionResult> GetById(int id = 0, string mode = "view")
         {
             if (id == 0) { return BadRequest(new { succsess = false, message = "Dữ liệu không hợp lệ - dữ liệu rỗng" }); }
 
@@ -94,13 +120,14 @@ namespace EmployeeMangement.Controllers
                 var result = await _employeeOne.Get(id, null);
                 if (result == null || !result.Any()) { return NotFound(new { succsess = false, message = "Không có dữ liệu" }); }
 
-              
+
                 var employee = result.FirstOrDefault();
                 if (employee == null) { return NotFound(new { succsess = false, message = "Không có dữ liệu" }); }
 
                 var model = new EmployeeResponse()
                 {
                     Id = employee.Id,
+                    Keyword = employee.Keyword,
                     Fullname = employee.Fullname,
                     Email = employee.Email,
                     Phone = employee.Phone,
@@ -108,16 +135,43 @@ namespace EmployeeMangement.Controllers
                     Status = employee.Status,
                     CreateBy = employee.CreateBy,
                     CreateByName = employee.CreateByName,
+                    UpdatedByName = employee.UpdatedByName,
                     CreateDate = employee.CreateDate,
                     UpdatedBy = employee.UpdatedBy,
                     UpdatedDate = employee.UpdatedDate,
                     JobPositionName = employee.JobPositionName,
+                    JobPositionId = employee.JobPositionId,
                     DepartmentName = employee.DepartmentName,
+                    DepartmentId = employee.DepartmentId,
                     Address = employee.Address,
-                    Keyword = employee.Keyword
+                  
                 };
+                if (mode == "view")
+                {
+                    return PartialView("~/Views/Shared/Page/_ViewDetailEmployee.cshtml", model);
+                }
+                var departments = await _departmentMany.GetAllDepartmentName();
 
-                return PartialView("~/Views/Shared/Page/_ViewDetailEmployee.cshtml", model);
+                model.Departments = departments.Select(x => new DepartmentResponse
+                {
+                    Id = x.Id,
+                    Name = x.Name
+                }).ToList();
+                var jobpositions = await _jobPositionMany.GetAllJobPositionName();
+                model.JobPositions = jobpositions.Select(y => new JobPositionResponse
+                {
+                    Id = y.Id,
+                    Name = y.Name,
+
+                }).ToList();
+                return PartialView("~/Views/Shared/Page/_EditAddEmployee.cshtml", model);
+
+
+
+
+
+
+
             }
             catch (Exception)
             {
@@ -150,20 +204,88 @@ namespace EmployeeMangement.Controllers
             }
         }
         // POST: api/employees
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] object employee)
+        [HttpPost("api/employee/create")]
+        public async Task<IActionResult> Create([FromBody] EmployeeResponse request)
         {
-            return Created("", new { message = "Employee created" });
+            if (request == null)
+                return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ - dữ liệu rỗng" });
+
+            if (SqlGuard.IsSuspicious(request))
+                return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ" });
+            try
+            {
+                var claims = User.Identity as ClaimsIdentity;
+                var accountIdString = claims?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (!int.TryParse(accountIdString, out int accountId) || accountId <= 0)
+                {
+                    return Unauthorized(new { success = false, message = "Không xác thực được tài khoản" });
+                }
+                var result = await _employeeCommand.Create(request, accountId);
+                if (result == 0)
+                    return NotFound(new { success = false, message = "Không tìm thấy dữ liệu để cập nhật" });
+
+                if (result == -1)
+                    return StatusCode(500, new { success = false, message = "Lỗi khi cập nhật dữ liệu" });
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Lưu dữ liệu thành công"
+                });
+            }
+            catch (Exception)
+            {
+
+                return StatusCode(500, new { success = false, message = "Không thể kết nối server" });
+            }
         }
 
-        // PUT: api/employees/5
-        //[HttpPut("api/employee/update/{id:int}")]
-        //public async Task<IActionResult> Update(int id, [FromBody] object employee)
-        //{
-           
-        //}
 
-        // DELETE: api/employee/delete/5
+        [HttpPut("api/employee/update")]
+        public async Task<IActionResult> Update([FromBody] EmployeeResponse request)
+        {
+            if (request == null)
+                return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ - dữ liệu rỗng" });
+
+            if (request.Id <= 0)
+                return BadRequest(new { success = false, message = "Mã nhân viên không hợp lệ" });
+
+            if (SqlGuard.IsSuspicious(request))
+                return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ" });
+
+            try
+            {
+                var claims = User.Identity as ClaimsIdentity;
+                var accountIdString = claims?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (!int.TryParse(accountIdString, out int accountId) || accountId <= 0)
+                {
+                    return Unauthorized(new { success = false, message = "Không xác thực được tài khoản" });
+                }
+
+                var result = await _employeeCommand.Update(request, accountId);
+
+                if (result == 0)
+                    return NotFound(new { success = false, message = "Không tìm thấy dữ liệu để cập nhật" });
+
+                if (result == -1)
+                    return StatusCode(500, new { success = false, message = "Lỗi khi cập nhật dữ liệu" });
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Lưu dữ liệu thành công"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = $"Không thể kết nối server: {ex.Message}" });
+            }
+        }
+
+
+        //// DELETE: api/employee/delete/5
         [HttpPost("api/employee/delete/{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {

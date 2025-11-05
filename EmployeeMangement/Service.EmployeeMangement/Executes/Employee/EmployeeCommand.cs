@@ -1,11 +1,13 @@
 ﻿using DBContext.EmployeeMangement;
 using DBContext.EmployeeMangement.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static Service.EmployeeMangement.Executes.EmployeeModel;
 
 namespace Service.EmployeeMangement.Executes
 {
@@ -31,5 +33,69 @@ namespace Service.EmployeeMangement.Executes
             _context.Employees.Update(items);
             return await _context.SaveChangesAsync();
         }
+        public async Task<int> Update(EmployeeResponse request, int accountId)
+        {
+            if (request == null || request.Id <= 0)
+                return 0;
+
+            var items = await _context.Employees
+                .FirstOrDefaultAsync(p => p.Id == request.Id);
+
+            if (items == null)
+                return 0;
+
+            try
+            {
+                items.Fullname = request.Fullname;
+                items.Email = request.Email;
+                items.Phone = request.Phone;
+                items.DepartmentId = request.DepartmentId;
+                items.Position = request.Position;
+                items.Status = request.Status;
+                items.UpdatedBy = accountId;
+                items.UpdatedDate = DateTime.UtcNow;
+                items.JobPositionId = request.JobPositionId;
+                items.Keyword = request.Keyword;
+
+                return await _context.SaveChangesAsync();
+            }
+            catch
+            {
+                return -1;
+            }
+        }
+
+        public async Task<int> Create(EmployeeResponse request, int accountId)
+        {
+            if (request == null)
+                return 0;
+
+            try
+            {
+                var newEmployee = new Employee
+                {
+                    Fullname = request.Fullname,
+                    Email = request.Email,
+                    Phone = request.Phone,
+                    DepartmentId = request.DepartmentId,
+                    Position = request.Position,
+                    Status = request.Status,
+                    JobPositionId = request.JobPositionId,
+                    Keyword = request.Keyword,
+                    CreateBy = accountId,
+                    CreateDate = DateTime.UtcNow
+                };
+
+                await _context.Employees.AddAsync(newEmployee);
+
+                return await _context.SaveChangesAsync();
+            }
+            catch
+            {
+                return -1;
+            }
+        }
+
+
     }
 }

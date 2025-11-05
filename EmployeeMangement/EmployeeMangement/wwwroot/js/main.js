@@ -95,9 +95,9 @@ $(function () {
     
         const main_content = $("#modalView");
         var id = $(this).data("id");
-       
+        var mode = "view";
         $.ajax({
-            url: `/api/employee/${id}`,
+            url: `/api/employee/${id}/${mode}`,
             method: 'GET',
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
@@ -118,18 +118,18 @@ $(function () {
     // Sửa
     $(document).on("click", "#edit-employee-btn", function (e) {
         e.preventDefault();
-        var id = $(this).data("id");
 
         const main_content = $("#modalView");
         var id = $(this).data("id");
-
+        var mode = "edit";
         $.ajax({
-            url: `/api/employee/update/${id}`,
+            url: `/api/employee/${id}/${mode}`,
             method: 'GET',
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
             .done(function (html) {
                 main_content.html(html);
+              
                 openViewModal();
             })
             .fail(function (xhr) {
@@ -162,8 +162,7 @@ $(function () {
         })
             .done(function (html) {
                 main_content.html(html);
-                getDepartments("#detailDepartment");
-                getJobPosition("#detailJobPosition");
+                
                 openViewModal();
             })
             .fail(function (xhr) {
@@ -173,6 +172,67 @@ $(function () {
 
        
     });
+
+    //Lưu
+    $(document).on("click", "#saveEditBtn", function () {
+
+        const items = getEmployeeEditData();
+
+        // Nếu Id tồn tại và > 0 → Update, ngược lại → Create
+        const isUpdate = items.Id && items.Id > 0;
+
+        const apiUrl = isUpdate ? `/api/employee/update` : `/api/employee/create`;
+        const httpMethod = isUpdate ? "PUT" : "POST";
+
+        $.ajax({
+            url: apiUrl,
+            method: httpMethod,
+            data: JSON.stringify(items),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json"
+        })
+            .done(function (res) {
+
+               
+                const isSuccess = res.success === true || res.succsess === true;
+                const message = res.message || "Thực thi thành công";
+
+                if (isSuccess) {
+                    toastr.success(message);
+
+                    $('#employeeDetailModal').modal('hide');
+                    $("#employeeDetailModal").empty();
+
+                    let page = getCurrentPage();
+                    applyFilters(page);
+                }
+                else {
+                    toastr.warning(message);
+                }
+            })
+            .fail(function () {
+                toastr.error("Không thể kết nối server");
+            });
+
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
 });
 function loadIndex() {
     getDepartments("#departmentFilter");
@@ -531,7 +591,8 @@ function getFilterParams() {
         keyword: $("#keyword").val() || "",
         status: $("#statusFilter").val() || "",
         departmentCode: $("#departmentFilter").val() || "",
-        jobPositionCode: $("#jobFilter").val() || ""
+        jobPositionCode: $("#jobFilter").val() || "",
+        position: $("#positionFilter").val() || "",
     };
 }
 function getCurrentPage() {
@@ -540,6 +601,20 @@ function getCurrentPage() {
     if (currentLabel.length === 0) return 1;
 
     return parseInt(currentLabel.data("page"));
+}
+function getEmployeeEditData() {
+    return {
+        Id: $("#idEmployee").val().trim(),
+       // AvatarUrl: $("#txtAvatarUrl").val().trim(),
+        Fullname: $("#detailName").val().trim(),
+        Status: $("#detailStatus").val(),
+        Email: $("#detailEmail").val().trim(),
+        Phone: $("#detailPhone").val().trim(),
+        Position: $("#detailPosition").val(),              // Chức vụ
+        DepartmentId: $("#detailDepartment").val(),        // Phòng ban
+        JobPositionId: $("#detailJobPosition").val(),      // Vị trí công tác
+        Keyword: $("#detailKeywords").val().trim()
+    };
 }
 
   function openViewModal() {
