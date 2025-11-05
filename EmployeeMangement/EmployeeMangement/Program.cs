@@ -1,6 +1,8 @@
 ﻿using DBContext.EmployeeMangement;
 using Microsoft.EntityFrameworkCore;
+using Service.EmployeeMangement;
 using Service.EmployeeMangement.Executes;
+using Service.EmployeeMangement.Executes.Account;
 
 
 
@@ -87,6 +89,7 @@ builder.Services.AddScoped<JobPositionCommand>();
 builder.Services.AddScoped<AccountCommand>();
 builder.Services.AddScoped<AccountModel>();
 
+
 // ------------------ Build app ------------------
 var app = builder.Build();
 
@@ -105,7 +108,7 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
-
+app.MapControllers();
 // ------------------ Default Route ------------------
 app.MapControllerRoute(
     name: "default",
