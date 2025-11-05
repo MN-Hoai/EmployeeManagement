@@ -58,7 +58,11 @@ namespace Service.EmployeeMangement.Executes
             {
                 query = query.Where(p => p.DepartmentId == filter.DepartmentId.Value);
             }
-
+            // Filter Status
+            if (filter.Status.HasValue)
+            {
+                query = query.Where(p => p.Status == filter.Status.Value);
+            }
             // Filter job position
             if (filter.JobpositionId.HasValue)
             {

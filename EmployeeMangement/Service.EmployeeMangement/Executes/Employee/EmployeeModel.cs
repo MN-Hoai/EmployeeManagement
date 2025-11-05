@@ -62,7 +62,7 @@ namespace Service.EmployeeMangement.Executes
             public int PageSize { get; set; } = 5;
             public int? DepartmentId { get; set; }
             public int? JobpositionId { get; set; }
-            public int Status { get; set; } = 1;
+            public int? Status { get; set; } = 1;
             public string? Position { get; set; }
             public string? KeySearch { get; set; }
             public DateTime? CreateDateFrom { get; set; }

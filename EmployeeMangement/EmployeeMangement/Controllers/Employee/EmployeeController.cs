@@ -208,7 +208,7 @@ namespace EmployeeMangement.Controllers
         public async Task<IActionResult> Create([FromBody] EmployeeResponse request)
         {
             if (request == null)
-                return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ - dữ liệu rỗng" });
+                return BadRequest(new { success = false, message = "Vui lòng điền đầy đủ thông tin" });
 
             if (SqlGuard.IsSuspicious(request))
                 return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ" });
@@ -246,7 +246,7 @@ namespace EmployeeMangement.Controllers
         public async Task<IActionResult> Update([FromBody] EmployeeResponse request)
         {
             if (request == null)
-                return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ - dữ liệu rỗng" });
+                return BadRequest(new { success = false, message = "Thông tin không có thay đổi" });
 
             if (request.Id <= 0)
                 return BadRequest(new { success = false, message = "Mã nhân viên không hợp lệ" });

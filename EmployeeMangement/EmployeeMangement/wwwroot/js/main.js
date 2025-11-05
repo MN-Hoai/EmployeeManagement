@@ -94,6 +94,7 @@ $(function () {
         e.preventDefault();
     
         const main_content = $("#modalView");
+        main_content.empty();
         var id = $(this).data("id");
         var mode = "view";
         $.ajax({
@@ -111,15 +112,20 @@ $(function () {
             });
        
     });
-    //đóng modal xem
+    //đóng modal 
     $(document).on("click", "#close-viewmodal-btn", function () {
         $("#modalView").empty();
+    });
+  
+    $(document).on("click", "#close-edit-btn", function () {
+        $("#modalEdit").empty();
     });
     // Sửa
     $(document).on("click", "#edit-employee-btn", function (e) {
         e.preventDefault();
 
-        const main_content = $("#modalView");
+        const main_content = $("#modalEdit");
+       
         var id = $(this).data("id");
         var mode = "edit";
         $.ajax({
@@ -135,13 +141,16 @@ $(function () {
             .fail(function (xhr) {
                 toastr.warning("Không có dữ liệu");
 
-            });
-
-
-
-
-        
+            });  
     });
+
+
+
+
+
+
+
+
 
     // Xóa
     $(document).on("click", "#delete-employee-btn", function (e) {
@@ -191,13 +200,13 @@ $(function () {
             contentType: "application/json; charset=utf-8",
             dataType: "json"
         })
-            .done(function (res) {
+            .done(function (res, textStatus, xhr) {
 
-               
-                const isSuccess = res.success === true || res.succsess === true;
+                const statusCode = xhr.status;
+                const isSuccess = res.success;
                 const message = res.message || "Thực thi thành công";
 
-                if (isSuccess) {
+                if (statusCode === 200 && isSuccess) {
                     toastr.success(message);
 
                     $('#employeeDetailModal').modal('hide');
@@ -206,12 +215,30 @@ $(function () {
                     let page = getCurrentPage();
                     applyFilters(page);
                 }
+                else if (statusCode === 400) {
+                    toastr.warning(res.message || "Dữ liệu không hợp lệ!");
+                }
+                else if (statusCode === 404) {
+                    toastr.warning("Không tìm thấy dữ liệu!");
+                }
+                else if (statusCode === 401) {
+                    toastr.error("Bạn chưa đăng nhập!");
+                 
+                }
                 else {
-                    toastr.warning(message);
+                    toastr.error(res.message || "Có lỗi xảy ra!");
                 }
             })
-            .fail(function () {
-                toastr.error("Không thể kết nối server");
+            .fail(function (xhr) {
+                const statusCode = xhr.status;
+
+                if (statusCode === 500) {
+                    toastr.error("Lỗi server!");
+                } else if (statusCode === 0) {
+                    toastr.error("Không thể kết nối đến server!");
+                } else {
+                    toastr.info("Vui lòng điền đủ thông tin");
+                }
             });
 
     });
@@ -554,14 +581,6 @@ function deleteEmployee(id) {
             toastr.error("không kết nối được server");
         });
 }
-
-
-
-
-
-
-
-
 
 
 //Hàm trợ giúp lấy dữ liệu 

@@ -10,7 +10,7 @@
                 <h5 class="modal-title text-white" id="employeeDetailModalLabel">
                     Chỉnh sửa nhân viên
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+              
             </div>
             <input type="hidden" value="@Model.Id" id="idEmployee" />
             <!-- Body -->
@@ -82,10 +82,7 @@
                                 <select id="detailPosition" class="form-select form-select-sm w-100 mx-auto p-2">
                                     <option value="" selected="@(Model.JobPositionName == "")">Tất cả chức vụ</option>
 
-                                    <option value="Manager" selected ="@(Model.JobPositionName == "Manager")">
-                                        Manager
-                                    </option>
-
+                                  
                                     <option value="IT Staff" selected = "@(Model.JobPositionName == "IT Staff" )">
                                         IT Staff
                                     </option>
@@ -137,11 +134,11 @@
 
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold text-muted">Ngày tạo</label>
-                                <input type="text" id="detailCreatedDate" class="form-control" readonly value="@Model.CreateDate?.ToString("dd/MM/yyyy")">
+                                <input type="text" id="detailCreatedDate" class="form-control" readonly value="@Model.CreateDate?.ToString("dd/MM/yyyy HH:mm:ss")">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold text-muted">Cập nhật lần cuối</label>
-                                <input type="text" id="detailUpdatedDate" class="form-control" readonly value="@Model.UpdatedDate?.ToString("dd/MM/yyyy")">
+                                <input type="text" id="detailUpdatedDate" class="form-control" readonly value="@Model.UpdatedDate?.ToString("dd/MM/yyyy HH:mm:ss")">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold text-muted">Người tạo</label>
@@ -170,7 +167,7 @@
                     <button type="button" class="btn btn-primary btn-sm me-2" id="saveEditBtn">
                         Lưu thay đổi
                     </button>
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                    <button type="button" id="close-edit-btn" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
                         Hủy
                     </button>
                 </div>
