@@ -1,8 +1,10 @@
-﻿using EmployeeMangement.Controllers.Helper;
+﻿using Azure.Core;
+using EmployeeMangement.Controllers.Helper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Service.EmployeeMangement.Executes;
+using Service.EmployeeMangement.Executes.Account;
 using System.Security.Claims;
 using static Service.EmployeeMangement.Executes.DepartmentModel;
 using static Service.EmployeeMangement.Executes.EmployeeModel;
@@ -60,6 +62,12 @@ namespace EmployeeMangement.Controllers
         {
             return PartialView("~/Views/Shared/Page/_EmployeeList.cshtml");
         }
+
+        [HttpGet]
+        public async Task<IActionResult> ChangePassword()
+        {
+            return PartialView("~/Views/Shared/Page/_ChangePassword.cshtml");
+        }
         public async Task<IActionResult> AddEmployee()
         {
             var model = new EmployeeResponse();
@@ -86,23 +94,23 @@ namespace EmployeeMangement.Controllers
         public async Task<IActionResult> GetAll(FilterListRequest filter)
         {
 
-            if (filter == null) { return BadRequest(new { succsess = false, message = "Dữ liệu không hợp lệ - dữ liệu rỗng" }); }
+            if (filter == null) { return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ - dữ liệu rỗng" }); }
 
             var isValid = SqlGuard.IsSuspicious(filter);
-            if (isValid) { return BadRequest(new { succsess = false, message = "Dữ liệu không hợp lệ - model không hợp lệ" }); }
+            if (isValid) { return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ - model không hợp lệ" }); }
             try
             {
                 var result = await _employeeMany.Gets(filter);
-                if (result == null) { return NotFound(new { succsess = false, message = "Không có dữ liệu" }); }
+                if (result == null) { return NotFound(new { success = false, message = "Không có dữ liệu" }); }
                 return Ok(new
                 {
-                    succsess = result,
+                    success = result,
                     message = "Lấy dữ liệu thành công"
                 });
             }
             catch (Exception)
             {
-                return StatusCode(500, new { succsess = false, message = "Không thể kết nối server" });
+                return StatusCode(500, new { success = false, message = "Không thể kết nối server" });
 
             }
         }
@@ -111,18 +119,18 @@ namespace EmployeeMangement.Controllers
         [HttpGet("api/employee/{id:int}/{mode}")]
         public async Task<IActionResult> GetById(int id = 0, string mode = "view")
         {
-            if (id == 0) { return BadRequest(new { succsess = false, message = "Dữ liệu không hợp lệ - dữ liệu rỗng" }); }
+            if (id == 0) { return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ - dữ liệu rỗng" }); }
 
             var isValid = SqlGuard.IsSuspicious(id);
-            if (isValid) { return BadRequest(new { succsess = false, message = "Dữ liệu không hợp lệ - id không hợp lệ" }); }
+            if (isValid) { return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ - id không hợp lệ" }); }
             try
             {
                 var result = await _employeeOne.Get(id, null);
-                if (result == null || !result.Any()) { return NotFound(new { succsess = false, message = "Không có dữ liệu" }); }
+                if (result == null || !result.Any()) { return NotFound(new { success = false, message = "Không có dữ liệu" }); }
 
 
                 var employee = result.FirstOrDefault();
-                if (employee == null) { return NotFound(new { succsess = false, message = "Không có dữ liệu" }); }
+                if (employee == null) { return NotFound(new { success = false, message = "Không có dữ liệu" }); }
 
                 var model = new EmployeeResponse()
                 {
@@ -133,6 +141,7 @@ namespace EmployeeMangement.Controllers
                     Phone = employee.Phone,
                     Position = employee.Position,
                     Status = employee.Status,
+                    Role = employee.Role,
                     CreateBy = employee.CreateBy,
                     CreateByName = employee.CreateByName,
                     UpdatedByName = employee.UpdatedByName,
@@ -162,6 +171,7 @@ namespace EmployeeMangement.Controllers
                 {
                     Id = y.Id,
                     Name = y.Name,
+                    Address = y.Address,
 
                 }).ToList();
                 return PartialView("~/Views/Shared/Page/_EditAddEmployee.cshtml", model);
@@ -175,7 +185,7 @@ namespace EmployeeMangement.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new { succsess = false, message = "Không thể kết nối server" });
+                return StatusCode(500, new { success = false, message = "Không thể kết nối server" });
             }
         }
 
@@ -183,23 +193,23 @@ namespace EmployeeMangement.Controllers
         [HttpGet("api/employee/email/{email}")]
         public async Task<IActionResult> GetByEmail(string email)
         {
-            if (email.IsNullOrEmpty()) { return BadRequest(new { succsess = false, message = "Dữ liệu không hợp lệ - dữ liệu rỗng" }); }
+            if (email.IsNullOrEmpty()) { return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ - dữ liệu rỗng" }); }
 
             var isValid = SqlGuard.IsSuspicious(email);
-            if (isValid) { return BadRequest(new { succsess = false, message = "Dữ liệu không hợp lệ - email không hợp lệ" }); }
+            if (isValid) { return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ - email không hợp lệ" }); }
             try
             {
                 var result = await _employeeOne.Get(0, email);
-                if (result == null) { return NotFound(new { succsess = false, message = "Không có dữ liệu" }); }
+                if (result == null) { return NotFound(new { success = false, message = "Không có dữ liệu" }); }
                 return Ok(new
                 {
-                    succsess = result,
+                    success = result,
                     message = "Lấy dữ liệu thành công"
                 });
             }
             catch (Exception)
             {
-                return StatusCode(500, new { succsess = false, message = "Không thể kết nối server" });
+                return StatusCode(500, new { success = false, message = "Không thể kết nối server" });
 
             }
         }
@@ -289,14 +299,14 @@ namespace EmployeeMangement.Controllers
         [HttpPost("api/employee/delete/{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
-            if (id == 0) { return BadRequest(new { succsess = false, message = "Dữ liệu không hợp lệ - dữ liệu rỗng" }); }
+            if (id == 0) { return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ - dữ liệu rỗng" }); }
 
             var isValid = SqlGuard.IsSuspicious(id);
-            if (isValid) { return BadRequest(new { succsess = false, message = "Dữ liệu không hợp lệ - id không hợp lệ" }); }
+            if (isValid) { return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ - id không hợp lệ" }); }
             try
             {
                 var result = await _employeeCommand.Delete(id);
-                if (result == 0) { return NotFound(new { succsess = false, message = "Không có dữ liệu" }); }
+                if (result == 0) { return NotFound(new { success = false, message = "Không có dữ liệu" }); }
                 return Ok(new
                 {
                     success = true,
@@ -305,9 +315,93 @@ namespace EmployeeMangement.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new { succsess = false, message = "Không thể kết nối server" });
+                return StatusCode(500, new { success = false, message = "Không thể kết nối server" });
 
             }
         }
+
+    
+        [HttpPost("api/employee/reset/{email}/{id:int}")]
+        public async Task<IActionResult> Reset(string email, int id = 0)
+        {
+            if (id <= 0)
+                return BadRequest(new { success = false, message = "Mã nhân viên không hợp lệ" });
+
+            if (string.IsNullOrWhiteSpace(email))
+                return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ - dữ liệu rỗng" });
+
+            if (SqlGuard.IsSuspicious(email))
+                return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ - email không hợp lệ" });
+
+            var emailRegex = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+            if (!System.Text.RegularExpressions.Regex.IsMatch(email, emailRegex))
+                return BadRequest(new { success = false, message = "Định dạng email không hợp lệ" });
+
+            try
+            {
+                var claims = User.Identity as ClaimsIdentity;
+                var accountIdString = claims?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (!int.TryParse(accountIdString, out int accountId) || accountId <= 0)
+                    return Unauthorized(new { success = false, message = "Không xác thực được tài khoản" });
+
+                var checkItem = await _employeeCommand.ResetCheck(email, accountId);
+                if (checkItem == 0)
+                    return NotFound(new { success = false, message = "Yêu cầu không hợp lệ" });
+
+                // ✅ Gửi email & nhận mật khẩu mới
+                var newPassword = EmailHelper.SendPassword(email);
+                if (newPassword == null)
+                    return BadRequest(new { success = false, message = "Gửi email không thành công" });
+
+                // ✅ Update mật khẩu mới vào DB
+                var result = await _employeeCommand.Reset(newPassword, id);
+                if (result == 0)
+                    return StatusCode(500, new { success = false, message = "Không kết nối tới server" });
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Đặt lại mật khẩu thành công"
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { success = false, message = "Không thể kết nối server" });
+            }
+        }
+
+        [HttpPost("api/employee/change")]
+        public async Task<IActionResult> Change(string oldpassword, string newPassword)
+        {
+
+          
+            var claims = User.Identity as ClaimsIdentity;
+            var accountIdString = claims?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (!int.TryParse(accountIdString, out int accountId) || accountId <= 0)
+                return Unauthorized(new { success = false, message = "Không xác thực được tài khoản" });
+
+            if (string.IsNullOrWhiteSpace(newPassword))
+                return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ - dữ liệu rỗng" });
+
+            try
+            {
+                var result = await _employeeCommand.Change(newPassword, oldpassword, accountId);
+                if (result == 0)
+                    return StatusCode(404, new { success = false, message = "Mật khẩu không chính xác" });
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Cập nhật mật khẩu thành công"
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { success = false, message = "Không thể kết nối server" });
+            }
+        }
+
     }
 }

@@ -56,7 +56,7 @@ namespace Service.EmployeeMangement.Executes
                     Fullname = e.Fullname,
                     Email = e.Email,
                     Phone = e.Phone,
-                  
+                    Role = e.Role,
                     Position = e.Position,
                     Address = e.JobPosition != null ? e.JobPosition.Address : null,
                     JobPositionId = e.JobPosition != null ? e.JobPosition.Id : null,

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using EmployeeMangement.Controllers.Helper;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Service.EmployeeMangement.Executes;
 using Service.EmployeeMangement.Executes.Account;
@@ -19,10 +20,24 @@ namespace EmployeeMangement.Controllers
         [HttpGet]
         public IActionResult SignIn()
         {
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("List", "Employee");
+            }
+            return View();
+          
+        }
+        public IActionResult ForgotPassword()
+        {
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("List", "Employee");
+            }
             return View();
         }
 
         [HttpPost]
+
         public async Task<IActionResult> SignIn(AccountModel.AccountRequest request)
         {
             if (!ModelState.IsValid)
@@ -91,6 +106,18 @@ namespace EmployeeMangement.Controllers
         }
 
 
+
+
+       
+
+
+
+
+
+
+
+
+
         // Logout
         public async Task<IActionResult> Logout()
         {
@@ -98,5 +125,51 @@ namespace EmployeeMangement.Controllers
             TempData["SuccessMessage"] = "Đăng xuất thành công!";
             return RedirectToAction("SignIn", "Account");
         }
+
+
+        [HttpPost("api/account/reset/{email}")]
+        public async Task<IActionResult> Reset(string email, int id = 0)
+        {
+          
+            if (string.IsNullOrWhiteSpace(email))
+                return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ - dữ liệu rỗng" });
+
+            if (SqlGuard.IsSuspicious(email))
+                return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ - email không hợp lệ" });
+
+            var emailRegex = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+            if (!System.Text.RegularExpressions.Regex.IsMatch(email, emailRegex))
+                return BadRequest(new { success = false, message = "Định dạng email không hợp lệ" });
+
+            try
+            {
+               
+                var newPassword = EmailHelper.SendPassword(email);
+                if (newPassword == null)
+                    return BadRequest(new { success = false, message = "Gửi email không thành công" });
+
+                // ✅ Update mật khẩu mới vào DB
+                var result = await _accountCommand.Reset(newPassword, email);
+                if (result == 0)
+                    return StatusCode(500, new { success = false, message = "Không kết nối tới server" });
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Đặt lại mật khẩu thành công"
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { success = false, message = "Không thể kết nối server" });
+            }
+        }
+
+     
+
+
+
+
+
     }
 }
