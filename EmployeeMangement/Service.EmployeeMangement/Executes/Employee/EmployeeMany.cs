@@ -116,6 +116,12 @@ namespace Service.EmployeeMangement.Executes
 
 
 
+        public async Task<List<Employee>> GetEmployeesByDepartment(int departmentId)
+        {
+            return await _context.Employees
+                .Where(e => e.DepartmentId == departmentId && e.Status == 1)
+                .ToListAsync();
+        }
 
 
 

@@ -17,11 +17,27 @@ namespace Service.EmployeeMangement.Executes
             public string ManagerName { get; set; }
             public int EmployeeCount { get; set; }
 
+
         }
 
         public class DeleteDepartmentRequest
         {
             public int? Id { get; set; }
          }
+        public class DepartmentViewModel
+        {
+            public int Id { get; set; }
+            public string Code { get; set; } = string.Empty;
+            public string Name { get; set; } = string.Empty;
+            public string? Keyword { get; set; }
+            public int? ManagerId { get; set; }
+            public int? JobPositionId { get; set; }  
+            public int? Status { get; set; }
+            public int? CreateBy { get; set; }
+            public int? UpdatedBy { get; set; }
+ 
+        }
+
+
     }
 }

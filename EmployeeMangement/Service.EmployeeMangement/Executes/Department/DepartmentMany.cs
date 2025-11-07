@@ -32,11 +32,15 @@ namespace Service.EmployeeMangement.Executes
                     Id = d.Id,
                     Name = d.Name,
                     Status = d.Status,
-                    ManagerName = d.Manager != null ? d.Manager.Fullname : "Chưa có",
-                    EmployeeCount = d.Employees.Count()
 
+                     ManagerName = d.Manager != null && d.Manager.Status == 1
+                        ? d.Manager.Fullname
+                        : "Chưa có",
+
+                     EmployeeCount = d.Employees.Count(e => e.Status == 1)
                 })
                 .ToListAsync();
         }
+
     }
 }
