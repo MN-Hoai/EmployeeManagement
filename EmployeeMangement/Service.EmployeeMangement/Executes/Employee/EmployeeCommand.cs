@@ -96,6 +96,38 @@ namespace Service.EmployeeMangement.Executes
             }
         }
 
+        public async Task<int> ResetCheck(string email, int accountId)
+        {
 
+            var isChange = await _context.Employees.FirstOrDefaultAsync(p => p.Id == accountId);
+            if (isChange == null)
+                return 0;
+
+            if (isChange.Role != 1)
+                return 0;
+
+            var items = await _context.Employees
+                .FirstOrDefaultAsync(p => p.Email == email);
+            if (items == null)
+                return 0;
+           
+            return 1;
+           
+        }
+        public async Task<int> Reset(string newpass, int id)
+        {
+
+            var items = await _context.Employees
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (items == null)
+                return 0;
+
+            items.PasswordHash = newpass;
+
+            _context.Employees.Update(items);
+            return await _context.SaveChangesAsync();
+
+        }
     }
 }

@@ -90,16 +90,57 @@ $(function () {
 
 
 
+    // resetpassword
+    $(document).on("click", "#resetpassword-btn", function (e) {
+        e.preventDefault();
+        var email = $("#detailEmail").val();
+        var id = $("#idEmployee").val();
+        showConfirmDialog({
+            title: "Đặt lại mật khẩu",
+            message: "Bạn có chắc chắn muốn đặt lại mật khẩu cho nhân viên này?",
+            confirmText: "Đặt lại",
+            onConfirm: function () {
+                $.ajax({
+                    url: `/api/employee/reset/${email}/${id}`,
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                    .done(function (res) {
+                        if (res.success)
+                        toastr.success("Đặt lại mật khẩu thành công");
 
+                    })
+                    .fail(function () {
+                        if(!res.success)
+                        toastr.warning(res.message);
 
+                    });  
+            },
+            onCancel: function () {
+                console.log("Đã hủy!");
+            }
+        });
+       
+       
+    });
 
 
     // Xóa
     $(document).on("click", "#delete-employee-btn", function (e) {
         e.preventDefault();
         var id = $(this).data("id");
-        
-        deleteEmployee(id);
+        showConfirmDialog({
+            title: "Xóa nhân viên",
+            message: "Bạn có chắc chắn muốn xóa nhân viên này?",
+            confirmText: "Xóa",
+            onConfirm: function () {
+                deleteEmployee(id);
+            },
+            onCancel: function () {
+                console.log("Đã hủy!");
+            }
+        });
+       
     });
 
     //Thêm
@@ -280,11 +321,11 @@ function loadEmployees(filters) {
         success: function (res) {
             console.log("API Response:", res);
 
-            if (res.succsess && res.succsess.items && res.succsess.items.length > 0) {
+            if (res.success && res.success.items && res.success.items.length > 0) {
 
                 $("#noData").addClass("d-none");
 
-                const result = res.succsess;
+                const result = res.success;
 
                 renderEmployeeList(result.items);
                 console.log("Đã đổ dữ liệu:", result.items);
@@ -324,8 +365,17 @@ function renderEmployeeList(items) {
             : '<span class="badge bg-danger status-badge">Tạm khóa</span>';
 
         const createDate = item.createDate
-            ? new Date(item.createDate).toLocaleDateString("vi-VN")
+            ? new Date(item.createDate).toLocaleString("vi-VN", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: false
+            })
             : "—";
+
 
         const keyword = item.keyword || "—";
 
@@ -591,4 +641,61 @@ function getEmployeeEditData() {
     });
 
     modal.show();
+}
+function showConfirmDialog({
+    title = "Xác nhận",
+    message = "Bạn có chắc chắn muốn thực hiện hành động này không?",
+    confirmText = "Đồng ý",
+    cancelText = "Hủy",
+    onConfirm = () => { },
+    onCancel = () => { }
+}) {
+    // Tạo DOM popup
+    const modal = $(`
+        <div class="custom-confirm-modal">
+            <div class="modal-content" >
+                <h5 class="modal-title">${title}</h5>
+                <p>${message}</p>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary cancel-btn">${cancelText}</button>
+                    <button class="btn btn-danger confirm-btn">${confirmText}</button>
+                </div>
+            </div>
+        </div>
+    `);
+
+    // Style cơ bản
+    modal.css({
+        position: "fixed",
+        top: 0, left: 0,
+        width: "100%", height: "100%",
+        background: "rgba(0,0,0,0.5)",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 9999
+    });
+
+    modal.find(".modal-content").css({
+        background: "#fff",
+        padding: "20px",
+        borderRadius: "8px",
+        minWidth: "300px",
+        textAlign: "center",
+        width: "65%"
+    });
+
+    // Gắn modal vào DOM
+    $("body").append(modal);
+
+    // Event button
+    modal.find(".confirm-btn").on("click", function () {
+        modal.remove();
+        onConfirm();
+    });
+
+    modal.find(".cancel-btn").on("click", function () {
+        modal.remove();
+        onCancel();
+    });
 }
