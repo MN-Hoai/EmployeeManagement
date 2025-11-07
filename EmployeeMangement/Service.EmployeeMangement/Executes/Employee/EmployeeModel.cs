@@ -27,6 +27,7 @@ namespace Service.EmployeeMangement.Executes
             public DateTime? CreateDate { get; set; }
 
             public int? UpdatedBy { get; set; }
+            public int? Role { get; set; }
             public string? UpdatedByName { get; set; }
 
             public DateTime? UpdatedDate { get; set; }

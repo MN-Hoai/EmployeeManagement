@@ -62,7 +62,10 @@
                             </select>
                         </div>
                         <div class="mt-3 text-start">
-                            <button type="button" class="form-control btn btn-outline-warning" id="resetpassword-btn">Đặt lại mật khẩu</button>
+                        
+                                <button type="button" class="form-control btn btn-outline-warning" id="resetpassword-btn">Đặt lại mật khẩu</button>
+                            
+                           
                         </div>
 
                     </div>
@@ -82,18 +85,18 @@
                                 <label class="form-label fw-semibold text-muted">Chức vụ</label>
 
                                 <select id="detailPosition" class="form-select form-select-sm w-100 mx-auto p-2">
-                                    <option value="" selected="@(Model.JobPositionName == "")">Tất cả chức vụ</option>
+                                    <option value="" selected="@(Model.Position == "")">Tất cả chức vụ</option>
 
                                   
-                                    <option value="IT Staff" selected = "@(Model.JobPositionName == "IT Staff" )">
+                                    <option value="IT Staff" selected = "@(Model.Position == "IT Staff" )">
                                         IT Staff
                                     </option>
 
-                                    <option value="HR Staff" selected="@(Model.JobPositionName == "HR Staff")">
+                                    <option value="HR Staff" selected="@(Model.Position == "HR Staff")">
                                         HR Staff
                                     </option>
 
-                                    <option value="Accountant" selected = "@(Model.JobPositionName == "Accountant")">
+                                    <option value="Accountant" selected="@(Model.Position == "Accountant")">
                                         Accountant
                                     </option>
 

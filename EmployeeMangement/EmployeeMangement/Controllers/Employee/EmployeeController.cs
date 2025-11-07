@@ -134,6 +134,7 @@ namespace EmployeeMangement.Controllers
                     Phone = employee.Phone,
                     Position = employee.Position,
                     Status = employee.Status,
+                    Role = employee.Role,
                     CreateBy = employee.CreateBy,
                     CreateByName = employee.CreateByName,
                     UpdatedByName = employee.UpdatedByName,
@@ -163,6 +164,7 @@ namespace EmployeeMangement.Controllers
                 {
                     Id = y.Id,
                     Name = y.Name,
+                    Address = y.Address,
 
                 }).ToList();
                 return PartialView("~/Views/Shared/Page/_EditAddEmployee.cshtml", model);

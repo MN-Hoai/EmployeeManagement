@@ -99,7 +99,9 @@ $(function () {
             title: "Đặt lại mật khẩu",
             message: "Bạn có chắc chắn muốn đặt lại mật khẩu cho nhân viên này?",
             confirmText: "Đặt lại",
+
             onConfirm: function () {
+                toastr.info("Đang thực hiên yêu cầu vui lòng chờ trong giây lát");
                 $.ajax({
                     url: `/api/employee/reset/${email}/${id}`,
                     method: 'POST',
@@ -108,11 +110,12 @@ $(function () {
                     .done(function (res) {
                         if (res.success)
                         toastr.success("Đặt lại mật khẩu thành công");
-
+                        if (!res.success)
+                            toastr.warning("Yêu cầu không hợp lệ kiểm tra lại email và quyền hạn của bạn");
                     })
                     .fail(function () {
-                        if(!res.success)
-                        toastr.warning(res.message);
+                      
+                        toastr.success("Yêu cầu không hợp lệ kiểm tra lại email và quyền hạn của bạn");
 
                     });  
             },
