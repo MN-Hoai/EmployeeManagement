@@ -103,7 +103,11 @@ namespace EmployeeMangement.Controllers
                 }
             });
         }
-
+        /// <summary>
+        /// save
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
 
 
         [HttpPost("api/jobposition/save")]
