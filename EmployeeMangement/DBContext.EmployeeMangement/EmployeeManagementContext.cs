@@ -41,7 +41,7 @@ public partial class EmployeeManagementContext : DbContext
                 .HasConstraintName("FK_Departments_Employees");
 
             entity.HasOne(d => d.CreateByNavigation)
-        .WithMany()  
+        .WithMany()
         .HasForeignKey(d => d.CreateBy)
         .HasConstraintName("FK_Department_CreateBy_Employee");
 
@@ -87,6 +87,16 @@ public partial class EmployeeManagementContext : DbContext
             entity.Property(e => e.CreateDate).HasColumnType("datetime");
             entity.Property(e => e.Name).HasMaxLength(225);
             entity.Property(e => e.UpdatedDate).HasColumnType("datetime");
+            entity.HasOne(jp => jp.CreateByNavigation)
+    .WithMany(emp => emp.JobPositionsCreated)
+    .HasForeignKey(jp => jp.CreateBy)
+    .HasConstraintName("FK_JobPosition_CreateBy");
+
+            entity.HasOne(jp => jp.UpdateByNavigation)
+                .WithMany(emp => emp.JobPositionsUpdated)
+                .HasForeignKey(jp => jp.UpdatedBy)
+                .HasConstraintName("FK_JobPosition_UpdateBy");
+
         });
 
         modelBuilder.Entity<MediaFile>(entity =>
