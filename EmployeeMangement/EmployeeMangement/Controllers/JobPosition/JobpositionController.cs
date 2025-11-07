@@ -1,5 +1,4 @@
-﻿using DBContext.EmployeeMangement;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Service.EmployeeMangement;
 using Service.EmployeeMangement.Executes;
 using static Service.EmployeeMangement.Executes.DepartmentModel;
@@ -47,18 +46,17 @@ namespace EmployeeMangement.Controllers
         }
 
 
+
         [HttpPost("api/jobposition/delete")]
         public async Task<IActionResult> DeleteJobPosition([FromBody] DeleteJobPositionRequest request)
         {
             try
             {
                 var result = await _jobPositionCommand.DeleteJobPositionById(request.Id);
+                if (result)
+                    return Ok(new { success = true, message = "Xóa bài viết thành công" });
 
-                return Ok(new
-                {
-                    success = result.Success,
-                    message = result.Message
-                });
+                return BadRequest(new { success = false, message = "Xóa bài viết không thành công" });
             }
             catch (Exception)
             {
@@ -66,26 +64,25 @@ namespace EmployeeMangement.Controllers
             }
         }
 
-
         [HttpGet("api/jobposition/view/{id}")]
         public async Task<IActionResult> GetJobPosition(int id)
         {
             var result = await _jobPositionOne.GetJobPositionById(id);
 
             if (result == null)
-                return BadRequest(new { success = false, message = "Không tìm thấy vị trí công tác" });
+                return BadRequest(new { success = false, message = "Không tìm thấy phòng ban" });
 
             return Ok(new
             {
                 success = true,
-                message = "Lấy chi tiết vị trí công tác thành công",
+                message = "Lấy chi tiết phòng ban thành công",
                 data = new
                 {
+
                     id = result.Id,
                     code = result.Code,
                     name = result.Name,
                     keyword = result.Keyword,
-                    address = result.Address,
                     status = result.Status,
                     createBy = result.CreateByNavigation == null ? null : new
                     {
@@ -99,62 +96,25 @@ namespace EmployeeMangement.Controllers
                         fullName = result.UpdateByNavigation.Fullname
                     },
                     updatedDate = result.UpdatedDate,
- 
+                    manager = result.Manager == null ? null : new
+                    {
+                        id = result.Manager.Id,
+                        fullname = result.Manager.Fullname,
+                        email = result.Manager.Email,
+                        phone = result.Manager.Phone,
+                        avatar = result.Manager.Media?.FilePath
+                    },
+                    jobPosition = result.JobPosition == null ? null : new
+                    {
+                        id = result.JobPosition.Id,
+                        code = result.JobPosition.Code,
+                        name = result.JobPosition.Name
+                    }
                 }
             });
+
         }
 
-
-
-        [HttpPost("api/jobposition/save")]
-        public async Task<IActionResult> SaveJobPosition([FromBody] JobPositionViewModel model)
-        {
-            try
-            {
-                var result = await _jobPositionCommand.SaveJobPosition(model);
-                return Ok(new
-                {
-                    success = true,
-                    message = model.Id > 0 ? "Cập nhật vị trí công tác thành công" : "Thêm mới vị trí công tác thành công"
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { success = false, message = "Lỗi server: " + ex.Message });
-            }
-        }
-
-        [HttpGet("api/jobpositions/list")]
-        public async Task<IActionResult> GetJobPositionList()
-        {
-            try
-            {
-                var results = await _jobPositionMany.GetAllJobPositionName();
-
-                if (results == null || !results.Any())
-                {
-                    return Ok(new { success = false, message = "Không có dữ liệu chức vụ", data = new List<object>() });
-                }
-
-                // Chỉ lấy ID + Name là đủ cho dropdown
-                var list = results.Select(x => new
-                {
-                    id = x.Id,
-                    name = x.Name
-                });
-
-                return Ok(new
-                {
-                    success = true,
-                    message = "Lấy danh sách chức vụ thành công",
-                    data = list
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { success = false, message = "Lỗi server: " + ex.Message });
-            }
-        }
 
 
     }

@@ -30,7 +30,4 @@ public partial class JobPosition
     public virtual ICollection<Department> Departments { get; set; } = new List<Department>();
 
     public virtual ICollection<Employee> Employees { get; set; } = new List<Employee>();
-    public virtual Employee CreateByNavigation { get; set; }
-    public virtual Employee UpdateByNavigation { get; set; }
-
 }

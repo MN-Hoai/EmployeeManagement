@@ -16,16 +16,14 @@ namespace Service.EmployeeMangement.Executes
         {
             _context = context;
         }
-
-        public async Task<JobPosition?> GetJobPositionById(int id)
+        public async Task<Department?> GetJobPositionById(int id)
         {
-            var jobPosition = await _context.JobPositions
-                .Include(j => j.CreateByNavigation)
-                .Include(j => j.UpdateByNavigation)
-                .FirstOrDefaultAsync(j => j.Id == id && j.Status != -1);
-
-            return jobPosition;
+            var department = await _context.Departments.
+                Include(d => d.Manager).ThenInclude(m => m.Media).
+                Include(d => d.CreateByNavigation).
+                Include(d => d.UpdateByNavigation).
+                Include(p => p.JobPosition).FirstOrDefaultAsync(d => d.Id == id && d.Status != -1);
+            return department;
         }
     }
-
 }

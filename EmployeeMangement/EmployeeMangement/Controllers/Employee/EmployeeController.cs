@@ -144,39 +144,5 @@ namespace EmployeeMangement.Controllers
         {
             return NoContent();
         }
-
-        // ✅ Lấy danh sách nhân viên theo ID phòng ban
-        [HttpGet("api/employees/by-department/{departmentId:int}")]
-        public async Task<IActionResult> GetByDepartment(int departmentId)
-        {
-            if (departmentId <= 0)
-                return BadRequest(new { success = false, message = "ID phòng ban không hợp lệ" });
-
-            try
-            {
-                var employees = await _employeeMany.GetEmployeesByDepartment(departmentId);
-
-                if (employees == null || !employees.Any())
-                    return Ok(new { success = true, message = "Phòng ban chưa có nhân viên", data = new List<object>() });
-
-                return Ok(new
-                {
-                    success = true,
-                    message = "Lấy danh sách nhân viên theo phòng ban thành công",
-                    data = employees.Select(e => new
-                    {
-                        e.Id,
-                        fullname = e.Fullname,
-                        email = e.Email,
-                        phone = e.Phone
-                    })
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { success = false, message = "Lỗi server: " + ex.Message });
-            }
-        }
-
     }
 }

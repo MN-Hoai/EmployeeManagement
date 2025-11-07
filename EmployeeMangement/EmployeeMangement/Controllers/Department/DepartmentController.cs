@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Service.EmployeeMangement;
 using Service.EmployeeMangement.Executes;
-using System.Security.Claims;
 using static Service.EmployeeMangement.Executes.DepartmentModel;
-using static Service.EmployeeMangement.Executes.JobPositionModel;
 
 namespace EmployeeMangement.Controllers
 {
@@ -55,12 +53,10 @@ namespace EmployeeMangement.Controllers
             try
             {
                 var result = await _departmentCommand.DeleteDepartmentById(request.Id);
-                return Ok(new
-                {
-                    success = result.Success,
-                    message = result.Message
-                });
-                 
+                if (result)
+                    return Ok(new { success = true, message = "Xóa bài viết thành công" });
+
+                return BadRequest(new { success = false, message = "Xóa bài viết không thành công" });
             }
             catch (Exception)
             {
@@ -68,7 +64,6 @@ namespace EmployeeMangement.Controllers
             }
         }
 
-       
         // === API: Lấy chi tiết phòng ban ===
         [HttpGet("api/department/view/{id}")]
         public async Task<IActionResult> GetDepartment(int id)
@@ -117,43 +112,6 @@ namespace EmployeeMangement.Controllers
                 }
             });
 
-
-
-
         }
-
-        [HttpPost("api/department/save")]
-        public async Task<IActionResult> SaveDepartment([FromBody] DepartmentViewModel model)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ" });
-
-            try
-            {
-                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                int userId = string.IsNullOrEmpty(userIdClaim) ? 0 : int.Parse(userIdClaim);
-
-                if (model.Id > 0)
-                    model.UpdatedBy = userId;
-                else
-                    model.CreateBy = userId;
-
-                var result = await _departmentCommand.SaveDepartmentAsync(model);
-
-                string action = model.Id > 0 ? "Cập nhật" : "Thêm mới";
-                return Ok(new
-                {
-                    success = result,
-                    message = result ? $"{action} phòng ban thành công" : "Không có thay đổi dữ liệu"
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { success = false, message = "Lỗi: " + ex.Message });
-            }
-        }
-
-
-
     }
 }

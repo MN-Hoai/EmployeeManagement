@@ -30,15 +30,11 @@ namespace Service.EmployeeMangement.Executes
                 .Select(d => new JobPositionResponse
                 {
                     Id = d.Id,
-                    Code = d.Code,
                     Name = d.Name,
-                    Keyword = d.Keyword,
                     Address = d.Address,
                     Status = d.Status,
-
                 })
                 .ToListAsync();
         }
-
     }
 }

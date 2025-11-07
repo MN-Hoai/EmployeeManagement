@@ -42,8 +42,6 @@ public partial class Employee
     public virtual Department Department { get; set; }
 
     public virtual ICollection<Department> Departments { get; set; } = new List<Department>();
-    public virtual ICollection<JobPosition> JobPositionsCreated { get; set; } = new List<JobPosition>();
-    public virtual ICollection<JobPosition> JobPositionsUpdated { get; set; } = new List<JobPosition>();
 
     public virtual JobPosition JobPosition { get; set; }
 

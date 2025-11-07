@@ -1,4 +1,4 @@
-﻿ <style>
+﻿<style>
     /* Giữ header bảng luôn nền trắng, chữ đen */
     .table thead.thead-white th {
         background-color: #ffffff !important;
@@ -13,14 +13,6 @@
         color: #000000 !important;
     }
 </style>
-@using System.Security.Claims
-
-<script>
-    window.currentUserId = '@User?.FindFirst(ClaimTypes.NameIdentifier)?.Value';
-    window.currentUserName = @Html.Raw(Json.Serialize(User?.FindFirst("FullName")?.Value ?? User?.Identity?.Name ?? ""));
-    console.log("🔐 Current User:", window.currentUserName, "(ID:", window.currentUserId, ")");
-</script>
-
 
 <div class="container-fluid">
 
