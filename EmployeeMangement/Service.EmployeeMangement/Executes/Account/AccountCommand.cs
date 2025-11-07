@@ -73,6 +73,21 @@ namespace Service.EmployeeMangement.Executes.Account
                 .FirstOrDefaultAsync(x => x.Email == email);
         }
 
+        public async Task<int> Reset(string newpass, string email)
+        {
+
+            var items = await _employeeMangementContext.Employees
+                .FirstOrDefaultAsync(p => p.Email == email);
+
+            if (items == null)
+                return 0;
+
+            items.PasswordHash = newpass;
+
+            _employeeMangementContext.Employees.Update(items);
+            return await _employeeMangementContext.SaveChangesAsync();
+
+        }
 
         public async Task Logout()
         {

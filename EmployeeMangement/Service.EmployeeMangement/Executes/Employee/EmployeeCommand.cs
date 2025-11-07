@@ -129,5 +129,21 @@ namespace Service.EmployeeMangement.Executes
             return await _context.SaveChangesAsync();
 
         }
+
+        public async Task<int> Change(string newpass,  string pass, int id)
+        {
+            var items = await _context.Employees
+                .Where(p => p.Id == id && p.PasswordHash == pass)
+                .FirstOrDefaultAsync();
+
+            if (items == null)
+                return 0;
+
+            items.PasswordHash = newpass;
+
+            _context.Employees.Update(items);
+            return await _context.SaveChangesAsync();
+        }
+
     }
 }

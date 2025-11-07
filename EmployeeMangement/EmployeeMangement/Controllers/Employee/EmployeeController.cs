@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Service.EmployeeMangement.Executes;
+using Service.EmployeeMangement.Executes.Account;
 using System.Security.Claims;
 using static Service.EmployeeMangement.Executes.DepartmentModel;
 using static Service.EmployeeMangement.Executes.EmployeeModel;
@@ -60,6 +61,12 @@ namespace EmployeeMangement.Controllers
         public async Task<IActionResult> EmployeeList()
         {
             return PartialView("~/Views/Shared/Page/_EmployeeList.cshtml");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ChangePassword()
+        {
+            return PartialView("~/Views/Shared/Page/_ChangePassword.cshtml");
         }
         public async Task<IActionResult> AddEmployee()
         {
@@ -364,7 +371,37 @@ namespace EmployeeMangement.Controllers
             }
         }
 
+        [HttpPost("api/employee/change")]
+        public async Task<IActionResult> Change(string oldpassword, string newPassword)
+        {
 
+          
+            var claims = User.Identity as ClaimsIdentity;
+            var accountIdString = claims?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (!int.TryParse(accountIdString, out int accountId) || accountId <= 0)
+                return Unauthorized(new { success = false, message = "Không xác thực được tài khoản" });
+
+            if (string.IsNullOrWhiteSpace(newPassword))
+                return BadRequest(new { success = false, message = "Dữ liệu không hợp lệ - dữ liệu rỗng" });
+
+            try
+            {
+                var result = await _employeeCommand.Change(newPassword, oldpassword, accountId);
+                if (result == 0)
+                    return StatusCode(404, new { success = false, message = "Mật khẩu không chính xác" });
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Cập nhật mật khẩu thành công"
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { success = false, message = "Không thể kết nối server" });
+            }
+        }
 
     }
 }
